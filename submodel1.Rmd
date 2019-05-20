@@ -1,0 +1,42 @@
+---
+title: "function_subModel 1"
+output: html_document
+---
+
+
+## All Factors:
+Los Angeles Transport factsheet: 
+media.metro.net/images/transportation_factsheet.pdf
+1. "Almost a quarter of total number of annual vehicle miles traveled in state occur in Los Angeles County 
+
+EPA: 
+epa.gov/energy/greenhouse-gases-equivalencies-calculator-calculations-and-references
+
+Passenger vehicle/year: 
+  Passenger vehicles are **defined** as 2-axle-4-tire veichles, including passenger cars, vans,pickup    trucks, and sport/utility vehicles. 
+  2016 weighted average combined fuel econonmy of cars and light trucks is a total of **22 miles/gallon** (FHWA 2018). 
+  the amount of carbon dioxide emitted per gallon of motor gasoline burned : 8.89*10^-3 metric tons.
+  
+**Calculation of CO2eq per passenger vehicle per year**
+8.89 *10^-3 metric tons CO2/gallon gasoline * 11507 VMT (car/truck average) * 1/22 miles/gallon (car/truck average) * 1CO2, CH4, N20/0.988 CO2  4.71 metric tons CO2e/vehicle/year
+
+**GHG from miles driven by average passenger vehicle**
+
+  8.89 * 10^-3 metric tons CO2/gallon gasoline * 1.22 miles per gallon (car/truck average) * 1 CO2, C4, N20/0.988 CO2 = 4.09 * 10^-4 metric tons CO2e/mile 
+
+
+
+inputs1 = StateVMT_year
+
+
+input2 = 
+
+
+x <- function(input1, input2){
+
+input1 * 
+
+
+} 
+
+microgram/meters3
