@@ -1,0 +1,83 @@
+---
+title: "ESM232_Project_AirTransportModelDevelopment"
+author: "Caitlin Swalec"
+date: "May 20, 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(tidyverse)
+library(janitor)
+library(ggplot2)
+```
+
+
+```{r}
+SCAQMD_data_raw <- read_csv("SCAQMD data raw.csv") %>% 
+  clean_names() %>% 
+  mutate(Difference=no2_aam_conc_ppb_for_central_la_087-no2_aam_conc_ppb_coachella_valley_1_4137)
+```
+
+```{r}
+ggplot(SCAQMD_data_raw, aes(no2_aam_conc_ppb_for_central_la_087, no2_aam_conc_ppb_coachella_valley_1_4137)) +
+  geom_point()
+```
+
+```{r}
+par(mfrow=c(1, 2))  # divide graph area in 2 columns
+boxplot(SCAQMD_data_raw$no2_aam_conc_ppb_for_central_la_087, main="LA air", sub=paste("Outlier rows: ", boxplot.stats(SCAQMD_data_raw$no2_aam_conc_ppb_for_central_la_087)$out))  # box plot for LA
+boxplot(SCAQMD_data_raw$no2_aam_conc_ppb_for_central_la_087, main="JTree air", sub=paste("Outlier rows: ", boxplot.stats(SCAQMD_data_raw$no2_aam_conc_ppb_coachella_valley_1_4137)$out))  # box plot for Jtree
+```
+
+```{r}
+library(e1071)
+par(mfrow=c(1, 2))  # divide graph area in 2 columns
+plot(density(SCAQMD_data_raw$no2_aam_conc_ppb_for_central_la_087), main="Density Plot: LA air", ylab="Frequency", sub=paste("Skewness:", round(e1071::skewness(SCAQMD_data_raw$no2_aam_conc_ppb_for_central_la_087), 2)))  # density plot for LA air
+polygon(density(SCAQMD_data_raw$no2_aam_conc_ppb_for_central_la_087), col="red")
+plot(density(SCAQMD_data_raw$no2_aam_conc_ppb_coachella_valley_1_4137), main="Density Plot: JTree air", ylab="Frequency", sub=paste("Skewness:", round(e1071::skewness(SCAQMD_data_raw$no2_aam_conc_ppb_coachella_valley_1_4137), 2)))  # density plot for JTree air
+polygon(density(SCAQMD_data_raw$no2_aam_conc_ppb_coachella_valley_1_4137), col="red")
+```
+
+```{r}
+cor(SCAQMD_data_raw$no2_aam_conc_ppb_for_central_la_087, SCAQMD_data_raw$no2_aam_conc_ppb_coachella_valley_1_4137)
+```
+
+```{r}
+linearMod <- lm(no2_aam_conc_ppb_coachella_valley_1_4137 ~ no2_aam_conc_ppb_for_central_la_087, data=SCAQMD_data_raw)  # build linear regression model on full data
+print(linearMod)
+```
+
+JTree_Air = -8.0148 + LA_Air*0.6693
+```{r}
+model_data <- SCAQMD_data_raw %>% 
+  mutate(JTree_air_predictions = -8.0148 + no2_aam_conc_ppb_for_central_la_087*0.6693)
+```
+
+
+```{r}
+ggplot(model_data, aes(no2_aam_conc_ppb_for_central_la_087, no2_aam_conc_ppb_coachella_valley_1_4137)) +
+  geom_point()+
+  geom_line(aes(x=no2_aam_conc_ppb_for_central_la_087, JTree_air_predictions))
+```
+
+
+```{r}
+summary(linearMod)
+modelSummary <- summary(linearMod)  # capture model summary as an object
+modelCoeffs <- modelSummary$coefficients  # model coefficients
+beta.estimate <- modelCoeffs["no2_aam_conc_ppb_for_central_la_087", "Estimate"]  # get beta estimate for LA air
+std.error <- modelCoeffs["no2_aam_conc_ppb_for_central_la_087", "Std. Error"]  # get std.error for LA air
+t_value <- beta.estimate/std.error  # calc t statistic
+p_value <- 2*pt(-abs(t_value), df=nrow(SCAQMD_data_raw)-ncol(SCAQMD_data_raw))  # calc p Value
+f_statistic <- linearMod$fstatistic[1]  # fstatistic
+f <- summary(linearMod)$fstatistic  # parameters for model p-value calc
+model_p <- pf(f[1], f[2], f[3], lower=FALSE)
+
+AIC(linearMod)  
+BIC(linearMod)  
+```
+
