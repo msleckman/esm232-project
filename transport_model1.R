@@ -63,7 +63,7 @@ transport_emissions_LA = function(population_df,
   all_vehicles = vehicle_per_capita * population_df[,2]
   ## by gasoline, by diesel
   all_vehicles_gasoline = all_vehicles  * (1 - proportion_diesel)
-  all_vehicles_diesel = all_vehicles * prop_diesel
+  all_vehicles_diesel = all_vehicles * proportion_diesel
   
   
 #### Calculation of emissions per vehicle type: ####
