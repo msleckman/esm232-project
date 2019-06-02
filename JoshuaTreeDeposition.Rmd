@@ -65,10 +65,12 @@ This submodel evaluates how the nitrogen emissions in LA will translate to nitro
 
 ```{r}
 
+#Read in historic NOx data from LA and Joshua Tree
 historic_data = read_csv("SCAQMD data raw.csv")
 
 #Run transport submodel and create a dataframe with Joshua Tree nitrogen (in grams) for each time step
 JT_nitrogen = air_transport(historic_data, LA_auto_emissions)
+JT_nitrogen_df = data.frame(JT_nitrogen[1])
 
 ```
 
@@ -80,14 +82,14 @@ In this phase, wet and dry deposition is calculated from the Nitrogen that is le
 ```{r}
 
 #Run wet and dry deposition models, which calculate rate of deposition
-wet_deposition
-dry_deposition
+wet_deposition = WetDeposition(JT_nitrogen_df)
+dry_deposition = DryDeposition(JT_nitrogen_df)
 
 #Add wet and dry deposition rates together
-total_deposition = wet_deposition$annual_wet + dry_deposition$dry_dep
+total_deposition = (wet_deposition$wet_dep + dry_deposition$dry_dep) * 0.0001
 
-#Create dataframe with the total deposition rate for each year
-deposition_rate_per_year = data.frame(wet_deposition$year, total_deposition)
+#Create dataframe with the additional deposition rate for each year
+deposition_rate_per_year = data.frame(time = wet_deposition$time, additional_dep = total_deposition)
 
 ```
 
@@ -95,15 +97,19 @@ deposition_rate_per_year = data.frame(wet_deposition$year, total_deposition)
 
 ```{r result}
 
-LA_auto_emissions %>% 
+#GT Table of added deposition each year
+colnames(deposition_rate_per_year) = c("Year","AddedDeposition")
+deposition_rate_per_year %>% 
   gt() %>% 
   tab_header(
-    title = "LA Emissions", # Add a title
-    subtitle = "Test"# And a subtitle
+    title = "Added Deposition in Joshua Tree", # Add a title
+    subtitle = "kg/hectare"# And a subtitle
   ) %>%
   fmt_passthrough( # Not sure about this but it works...
     columns = vars() # First column: supp (character)
   )
+
+ggplot(deposition_rate_per_year) + geom_line(aes(x = Year, y = AddedDeposition)) + theme_classic() + ylab("Total Deposition\n") + xlab("\nYear")
 
 ```
 

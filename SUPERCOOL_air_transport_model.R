@@ -49,9 +49,9 @@ air_transport = function(historic_data, city1_data, n_mw = 14, avg_nox_mw = 41.3
   
   #Correlates the NOx level in LA County to NOx level in Joshua Tree, then converts from kg NOx/year to kg N/year using molecular weights of nitrogen and NOx, then converts from kg N/year to kg N/m^3/year using the area of LA County and height of troposphere
   city2_data <- city1_data
-  city2_data$city2_air = (linearMod$coefficients[1]+city2_data$city1_air*linearMod$coefficients[2])*(n_mw/avg_nox_mw)/(area*height)
+  city2_data$city2_air = (linear_mod$coefficients[1]+city2_data$nitrogen*linear_mod$coefficients[2])*(n_mw/avg_nox_mw)/(area*height)
   city2_data <- city2_data %>% 
-    select(year, city2_air)
+    select(time, city2_air)
   
   #Format statistical outputs into table
   stat <- c("correlation", "std error", "t value", "p value")
