@@ -94,6 +94,3 @@ transport_emissions_LA = function(population_df,
   return(transport_df)
   
   }
-
-
-transport_emissions_LA(test)
