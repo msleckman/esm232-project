@@ -1,0 +1,79 @@
+---
+title: "Joshua Tree Deposition"
+author: "Kym Howo, Alex Irvin, Margaux Sleckman, Caitlin Swalec"
+date: "5/30/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+### Load Packages and Functions
+
+```{r packages}
+library(tidyverse)
+library(deSolve)
+```
+
+```{r functions}
+source("WetDeposition.R")
+source("DryDeposition.R")
+source("HumanPopulationGrowth.R")
+source("transport_model1.R")
+```
+
+### Population Growth ODE Submodel
+
+The first part of the model is finding how the LA population will grow over the next 100 years. This will ultimately determine how many vehicles are present in LA in the emissions phase of the model. 
+
+```{r ode}
+
+#Set up the time frame
+time_frame = data.frame(time=seq(from=1,to=100))
+
+#Set initial parameters of population size, growth rate, and carrying capacity
+parameters = list(p0=10105518,r=0.0013,K=100000000)
+
+#Run ODE model to find human population over the time frame
+result = ode(parameters$p0, time_frame$time, HumanPopGrowth, parameters)
+
+#Create dataframe to pass into next submodel
+LA_population = data.frame(result)
+colnames(LA_population) = c("time","pop")
+
+```
+
+
+### Emissions Submodel
+
+The second part of the model is the emissions phase, where automobile and industrial emissions dispense NOx into the atmosphere. 
+
+```{r}
+
+#Run emissions submodel and create dataframe with emissions of Nitrogen (in grams) per year
+LA_auto_emissions = transport_emissions_LA(LA_population)
+colnames(LA_auto_emissions) = c("time","pop","nitrogen")
+
+```
+
+### Transport Submodel
+
+This submodel evaluates how the nitrogen emissions in LA will translate to nitrogen in the air in Joshua Tree
+
+```{r}
+
+
+
+```
+
+
+### Deposition Submodel
+
+In this phase, wet and dry deposition is calculated from the Nitrogen that is left in the atmosphere after the transport phase.
+
+```{r}
+
+
+```
+
