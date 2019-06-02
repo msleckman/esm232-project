@@ -1,0 +1,68 @@
+---
+title: "Joshua Tree Deposition"
+author: "Kym Howo, Alex Irvin, Margaux Sleckman, Caitlin Swalec"
+date: "5/30/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+### Load Packages and Functions
+
+```{r packages}
+library(tidyverse)
+library(deSolve)
+```
+
+```{r functions}
+source("WetDeposition.R")
+source("DryDeposition.R")
+source("HumanPopulationGrowth.R")
+```
+
+### Population Growth ODE Submodel
+
+The first part of the model is finding how the LA population will grow over the next 100 years. This will ultimately determine how many vehicles are present in LA in the emissions phase of the model. 
+
+```{r ode}
+
+#Set up the time frame
+time_frame = data.frame(time=seq(from=1,to=100))
+
+#Set initial parameters
+parameters = list(p0=10105518,r=0.0013,K=100000000)
+
+#Run ODE model to find human population over the time frame
+result = ode(parameters$p0, time_frame$time, HumanPopGrowth, parameters)
+
+```
+
+
+### Emissions Submodel
+
+The second part of the model is the emissions phase, where automobile and industrial emissions dispense NOx into the atmosphere. 
+
+```{r}
+#First, set up the current state of emissions
+
+```
+
+### Transport Submodel
+
+```{r}
+
+
+```
+
+
+### Deposition Submodel
+
+In this phase, wet and dry deposition is calculated from the Nitrogen that is left in the atmosphere after the transport phase.
+
+```{r}
+
+
+```
+

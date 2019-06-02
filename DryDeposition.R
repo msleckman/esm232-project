@@ -5,15 +5,18 @@
 
 #### Parameters ####
 
-#' @param nitrogen_concentration: concentration of nitrogen (microgram/m3)
+#' @param nitrogen_concentration: dataframe of concentration of nitrogen for each year (g/m3)
 #' @param deposition_velocity: deposition velocity (m/sec)
-#' @return annual dry deposition of nitrogen to Joshua Tree (microgram/(m2*year)
+#' @return dataframe of annual dry deposition of nitrogen to Joshua Tree (g/(m2*year)
 
 DryDeposition = function(nitrogen_concentration, deposition_velocity) 
 {
-  #Calculate and return per second dry deposition (microgram/(m2*sec))
-  dry_dep = nitrogen_concentration * deposition_velocity 
+  #Calculate and return per second dry deposition (g/(m2*sec))
+  dry_dep = nitrogen_concentration$nitrogen * deposition_velocity
+  dry_dep = dry_dep * 60 * 60 * 24 * 365
+  
+  deposition_per_year = data.frame(nitrogen_concentration$year, dry_dep)
   
   #Return annual dry deposition
-  return(dry_dep * 60 * 60 * 24 * 365 )
+  return(dry_dep * 60 * 60 * 24 * 365)
 }
