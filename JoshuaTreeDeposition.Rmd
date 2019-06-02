@@ -22,6 +22,7 @@ source("WetDeposition.R")
 source("DryDeposition.R")
 source("HumanPopulationGrowth.R")
 source("transport_model1.R")
+source("SUPERCOOL_air_transport_model.R")
 ```
 
 ### Population Growth ODE Submodel
@@ -64,8 +65,10 @@ This submodel evaluates how the nitrogen emissions in LA will translate to nitro
 
 ```{r}
 
+historic_data = read_csv("SCAQMD data raw.csv")
+
 #Run transport submodel and create a dataframe with Joshua Tree nitrogen (in grams) for each time step
-JT_nitrogen
+JT_nitrogen = air_transport(historic_data, LA_auto_emissions)
 
 ```
 
