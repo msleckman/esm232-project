@@ -31,11 +31,15 @@ The first part of the model is finding how the LA population will grow over the 
 #Set up the time frame
 time_frame = data.frame(time=seq(from=1,to=100))
 
-#Set initial parameters
+#Set initial parameters of population size, growth rate, and carrying capacity
 parameters = list(p0=10105518,r=0.0013,K=100000000)
 
 #Run ODE model to find human population over the time frame
 result = ode(parameters$p0, time_frame$time, HumanPopGrowth, parameters)
+
+#Create dataframe to pass into next submodel
+LA_population = data.frame(result)
+colnames(LA_population) = c("time","pop")
 
 ```
 
