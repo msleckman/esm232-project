@@ -9,9 +9,6 @@
 
 ######
 
-
-7762454/10162507
-
 # population_cars_growth_rate
   
 transport_emissions_LA = function(population_df, 
