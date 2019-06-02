@@ -113,3 +113,44 @@ ggplot(deposition_rate_per_year) + geom_line(aes(x = Year, y = AddedDeposition))
 
 ```
 
+```{r}
+library(sensitivity)
+# Create two samples for sobel sensitivity with annual precipitation
+annual_precip = 0.13
+nsample=1000
+Ps1 = as.data.frame(runif(min=0, max=1000, n=nsample))
+Ps2 = as.data.frame(runif(min=0, max=1000, n=nsample))
+
+sens_micro=sobol2007(model = NULL, Ps1, Ps2, nboot = 100)
+head(sens_micro$X)
+nsim=nrow(sens_micro$X)
+
+#run model
+results <- NA
+res <- data.frame(
+  cost=cost_sens, opt_results=opt_results, opt_results_objective=opt_results_objective)
+res_irr = rep(0,times=nsim)
+
+for (i in 1:nsim) {
+  tmp = WetDeposition(nitrogen_concentration = ?,
+                      annual_precip=as.numeric(sens_micro$X[i,"P"]),
+                      num_storms = 50, storm_duration = 10, cloud_height = 610)
+  
+  
+  res[i] = tmp$?
+} 
+
+# give our results to sensitivity structure
+sens_micro = sensitivity::tell(sens_micro, res)
+
+# look at results
+sens_micro$S
+sens_micro$T
+
+tmp = cbind.data.frame(sens_micro$X, irrigation=sens_micro$y)
+ggplot(tmp, aes(c1, irrigation))+
+  geom_point()+
+  ggtitle("Sensitivity analysis of optimal irrigation based on changing costs of irrigation, \n almond prices, temperature, and precipitation") +
+  labs(x="Cost",y="Irrigation")
+```
+
