@@ -64,7 +64,7 @@ colnames(LA_auto_emissions) = c("time","pop","nitrogen")
 
 This submodel evaluates how the nitrogen emissions in LA will translate to nitrogen in the air in Joshua Tree
 
-```{r}
+```{r message = FALSE}
 
 #Read in historic NOx data from LA and Joshua Tree
 historic_data = read_csv("SCAQMD data raw.csv")
@@ -72,6 +72,8 @@ historic_data = read_csv("SCAQMD data raw.csv")
 #Run transport submodel and create a dataframe with Joshua Tree nitrogen (in grams) for each time step
 JT_nitrogen = air_transport(historic_data, LA_auto_emissions)
 JT_nitrogen_df = data.frame(JT_nitrogen[1])
+JT_nitrogen[7]
+JT_nitrogen[8]
 
 ```
 
@@ -135,6 +137,7 @@ nsim=nrow(sens_micro$X)
 #Set up data frame
 res_init = rep(0,times=nsim)
 res <- data.frame(Iteration = res_init, LastYearDep = res_init)
+res_nitrogen <- res_init
 
 #Loop through every simulation
 for (i in 1:nsim) {
@@ -144,18 +147,19 @@ for (i in 1:nsim) {
   
   res$Iteration[i] = i
   res$LastYearDep[i] = tmp[100,2]
+  res_nitrogen[i] = res$LastYearDep[i]
 } 
 
 #Give our results to sensitivity structure
 dep_vector = res$LastYearDep
-sens_micro = sensitivity::tell(sens_micro, dep_vector)
+sens_micro = sensitivity::tell(sens_micro, res_nitrogen)
 
 # look at results
 sens_micro$S
 sens_micro$T
 
-tmp = cbind.data.frame(sens_micro$X, irrigation=sens_micro$y)
-ggplot(tmp, aes(c1, irrigation))+
+tmp = cbind.data.frame(sens_micro$X, nitrogen=sens_micro$y)
+ggplot(tmp, aes(c1, nitrogen))+
   geom_point()+
   ggtitle("Sensitivity analysis of optimal irrigation based on changing costs of irrigation, \n almond prices, temperature, and precipitation") +
   labs(x="Cost",y="Irrigation")
