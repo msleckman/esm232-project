@@ -14,6 +14,7 @@ knitr::opts_chunk$set(echo = TRUE)
 ```{r packages}
 library(tidyverse)
 library(deSolve)
+library(gt)
 ```
 
 ```{r functions}
@@ -63,7 +64,8 @@ This submodel evaluates how the nitrogen emissions in LA will translate to nitro
 
 ```{r}
 
-
+#Run transport submodel and create a dataframe with Joshua Tree nitrogen (in grams) for each time step
+JT_nitrogen
 
 ```
 
@@ -74,6 +76,31 @@ In this phase, wet and dry deposition is calculated from the Nitrogen that is le
 
 ```{r}
 
+#Run wet and dry deposition models, which calculate rate of deposition
+wet_deposition
+dry_deposition
+
+#Add wet and dry deposition rates together
+total_deposition = wet_deposition$annual_wet + dry_deposition$dry_dep
+
+#Create dataframe with the total deposition rate for each year
+deposition_rate_per_year = data.frame(wet_deposition$year, total_deposition)
+
+```
+
+### Final Result
+
+```{r result}
+
+LA_auto_emissions %>% 
+  gt() %>% 
+  tab_header(
+    title = "LA Emissions", # Add a title
+    subtitle = "Test"# And a subtitle
+  ) %>%
+  fmt_passthrough( # Not sure about this but it works...
+    columns = vars() # First column: supp (character)
+  )
 
 ```
 
