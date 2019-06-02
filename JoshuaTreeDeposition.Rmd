@@ -49,7 +49,7 @@ colnames(LA_population) = c("time","pop")
 
 The second part of the model is the emissions phase, where automobile and industrial emissions dispense NOx into the atmosphere. 
 
-```{r}
+```{r emissions}
 
 #Run emissions submodel and create dataframe with emissions of Nitrogen (in grams) per year
 LA_auto_emissions = transport_emissions_LA(LA_population)
