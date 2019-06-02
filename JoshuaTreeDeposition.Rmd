@@ -14,6 +14,7 @@ knitr::opts_chunk$set(echo = TRUE)
 ```{r packages}
 library(tidyverse)
 library(deSolve)
+library(sensitivity)
 library(gt)
 ```
 
@@ -113,35 +114,41 @@ ggplot(deposition_rate_per_year) + geom_line(aes(x = Year, y = AddedDeposition))
 
 ```
 
-```{r}
-library(sensitivity)
-# Create two samples for sobel sensitivity with annual precipitation
-annual_precip = 0.13
-nsample=1000
-Ps1 = as.data.frame(runif(min=0, max=1000, n=nsample))
-Ps2 = as.data.frame(runif(min=0, max=1000, n=nsample))
 
+### Sensitivity Analysis 
+
+```{r}
+
+#Create two samples for sobel sensitivity with annual precipitation
+nsample=1000
+Ps1 = as.data.frame(runif(min=0, max=1, n=nsample))
+colnames(Ps1) = "p"
+
+Ps2 = as.data.frame(runif(min=0, max=1, n=nsample))
+colnames(Ps2) = "p"
+
+#Run sobol sensitivity model
 sens_micro=sobol2007(model = NULL, Ps1, Ps2, nboot = 100)
 head(sens_micro$X)
 nsim=nrow(sens_micro$X)
 
-#run model
-results <- NA
-res <- data.frame(
-  cost=cost_sens, opt_results=opt_results, opt_results_objective=opt_results_objective)
-res_irr = rep(0,times=nsim)
+#Set up data frame
+res_init = rep(0,times=nsim)
+res <- data.frame(Iteration = res_init, LastYearDep = res_init)
 
+#Loop through every simulation
 for (i in 1:nsim) {
-  tmp = WetDeposition(nitrogen_concentration = ?,
-                      annual_precip=as.numeric(sens_micro$X[i,"P"]),
-                      num_storms = 50, storm_duration = 10, cloud_height = 610)
+  tmp = WetDeposition(nitrogen_concentration = JT_nitrogen_df,
+                      annual_precip=as.numeric(sens_micro$X[i,"p"]))
   
   
-  res[i] = tmp$?
+  res$Iteration[i] = i
+  res$LastYearDep[i] = tmp[100,2]
 } 
 
-# give our results to sensitivity structure
-sens_micro = sensitivity::tell(sens_micro, res)
+#Give our results to sensitivity structure
+dep_vector = res$LastYearDep
+sens_micro = sensitivity::tell(sens_micro, dep_vector)
 
 # look at results
 sens_micro$S
