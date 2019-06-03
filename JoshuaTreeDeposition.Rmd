@@ -75,6 +75,7 @@ This submodel evaluates how the nitrogen emissions in LA will translate to nitro
 
 #Read in historic NOx data from LA and Joshua Tree. City 1 is LA, City 2 is Joshua Tree.
 historic_data = read_csv("SCAQMD data raw JT.csv")
+#To demonstrate ability to run with another city's data, try reading in "SCAQMD data raw SBer.csv" where City 1 is LA and City 2 is San Bernardino Valley.
 
 #Run transport submodel and create a dataframe with Joshua Tree nitrogen (in grams) for each time step
 JT_nitrogen = air_transport(historic_data, LA_auto_emissions)
@@ -140,7 +141,6 @@ Ps2 = cbind.data.frame(
 
 #Run sobol sensitivity model
 sens_micro=sobol2007(model = NULL, Ps1, Ps2, nboot = 100)
-head(sens_micro$X)
 nsim=nrow(sens_micro$X)
 
 #Set up data frame
@@ -157,15 +157,12 @@ for (i in 1:nsim) {
 #Give our results to sensitivity structure
 sens_micro = sensitivity::tell(sens_micro, res)
 
-# look at results
-sens_micro$S
-sens_micro$T
-
 tmp_sens = cbind.data.frame(sens_micro$X, nitrogen100=sens_micro$y)
 ggplot(tmp_sens, aes(p2, nitrogen100))+
   geom_point()+
   ggtitle("Sensitivity analysis of wet nitrogen deposition \n based on annual precipitation") +
-  labs(x="Annual Precipitation",y="Additional Nitrogen Deposition")
+  labs(x="Annual Precipitation",y="Additional Wet Nitrogen Deposition")
 
 ```
 
+This sensitivity analysis shows that annual precipitation has a significant affect on wet deposition, but additional wet deposition approaches an upper limit as annual precipitation approaches infinity. 
