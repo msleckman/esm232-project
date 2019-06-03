@@ -125,7 +125,7 @@ deposition_rate_per_year %>%
     columns = vars() # First column: supp (character)
   )
 
-ggplot(deposition_rate_per_year) + geom_line(aes(x = Year, y = AddedDeposition)) + theme_classic() + ylab("Total Deposition\n") + xlab("\nYear")
+ggplot(deposition_rate_per_year) + geom_line(aes(x = Year, y = AddedDeposition)) + theme_classic() + ylab("Additional Deposition\n") + xlab("\nYear")
 
 ```
 
