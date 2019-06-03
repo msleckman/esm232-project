@@ -69,7 +69,7 @@ colnames(LA_auto_emissions) = c("time","pop","nitrogen")
 
 #### Transport Submodel
 
-This submodel evaluates how the nitrogen emissions in LA will translate to nitrogen in the air in Joshua Tree. This is done through a linear regression of historical data. 
+This submodel evaluates how the nitrogen emissions in LA will translate to nitrogen in the air in Joshua Tree. This is done through a linear regression of historical data for air quality in Los Angeles and Coachella Valley (closest South Coast Air Quality Management District monitoring location to Joshua Tree). 
 
 ```{r message = FALSE}
 
@@ -85,6 +85,7 @@ JT_nitrogen[8]
 
 ```
 
+The boxplots show that there are no outliers in this data set and the density plots show that the distribution of NOx for both LA and Joshua Tree are relatively normal. The Joshua Tree data starts to show signs of a bimodal distribution, but we decided that it is reasonable to assume normality. The linear regression correlated NOx levels in LA to NOx levels in Joshua Tree. Correlation between these data sets is strong with a correlation factor of 0.94, showing that it is reasonable to assumer linear correlation. The equation for the linear regression produced using the historic data for Joshua Tree and Los Angeles is as follows: NOx level in Joshua Tree = -8.0148 + (NOx level in Los Angeles)*0.6693
 
 
 #### Deposition Submodel
