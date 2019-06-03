@@ -14,6 +14,7 @@ knitr::opts_chunk$set(echo = TRUE)
 ```{r packages}
 library(tidyverse)
 library(deSolve)
+library(sensitivity)
 library(gt)
 ```
 
@@ -22,6 +23,7 @@ source("WetDeposition.R")
 source("DryDeposition.R")
 source("HumanPopulationGrowth.R")
 source("transport_model1.R")
+source("SUPERCOOL_air_transport_model.R")
 ```
 
 ### Population Growth ODE Submodel
@@ -62,10 +64,16 @@ colnames(LA_auto_emissions) = c("time","pop","nitrogen")
 
 This submodel evaluates how the nitrogen emissions in LA will translate to nitrogen in the air in Joshua Tree
 
-```{r}
+```{r message = FALSE}
+
+#Read in historic NOx data from LA and Joshua Tree
+historic_data = read_csv("SCAQMD data raw.csv")
 
 #Run transport submodel and create a dataframe with Joshua Tree nitrogen (in grams) for each time step
-JT_nitrogen
+JT_nitrogen = air_transport(historic_data, LA_auto_emissions)
+JT_nitrogen_df = data.frame(JT_nitrogen[1])
+JT_nitrogen[7]
+JT_nitrogen[8]
 
 ```
 
@@ -77,14 +85,14 @@ In this phase, wet and dry deposition is calculated from the Nitrogen that is le
 ```{r}
 
 #Run wet and dry deposition models, which calculate rate of deposition
-wet_deposition
-dry_deposition
+wet_deposition = WetDeposition(JT_nitrogen_df)
+dry_deposition = DryDeposition(JT_nitrogen_df)
 
 #Add wet and dry deposition rates together
-total_deposition = wet_deposition$annual_wet + dry_deposition$dry_dep
+total_deposition = (wet_deposition$wet_dep + dry_deposition$dry_dep) * 0.0001
 
-#Create dataframe with the total deposition rate for each year
-deposition_rate_per_year = data.frame(wet_deposition$year, total_deposition)
+#Create dataframe with the additional deposition rate for each year
+deposition_rate_per_year = data.frame(time = wet_deposition$time, additional_dep = total_deposition)
 
 ```
 
@@ -92,15 +100,65 @@ deposition_rate_per_year = data.frame(wet_deposition$year, total_deposition)
 
 ```{r result}
 
-LA_auto_emissions %>% 
+#GT Table of added deposition each year
+colnames(deposition_rate_per_year) = c("Year","AddedDeposition")
+deposition_rate_per_year %>% 
   gt() %>% 
   tab_header(
-    title = "LA Emissions", # Add a title
-    subtitle = "Test"# And a subtitle
+    title = "Added Deposition in Joshua Tree", # Add a title
+    subtitle = "kg/hectare"# And a subtitle
   ) %>%
   fmt_passthrough( # Not sure about this but it works...
     columns = vars() # First column: supp (character)
   )
+
+ggplot(deposition_rate_per_year) + geom_line(aes(x = Year, y = AddedDeposition)) + theme_classic() + ylab("Total Deposition\n") + xlab("\nYear")
+
+```
+
+
+### Sensitivity Analysis 
+
+```{r}
+
+#Create two samples for sobel sensitivity with annual precipitation
+nsample=1000
+Ps1 = cbind.data.frame(
+  p1 = runif(min=0, max=1, n=nsample),
+  p2 = runif(min=0, max=1, n=nsample))
+
+Ps2 = cbind.data.frame(
+  p1 = runif(min=0, max=1, n=nsample),
+  p2 = runif(min=0, max=1, n=nsample))
+
+#Run sobol sensitivity model
+sens_micro=sobol2007(model = NULL, Ps1, Ps2, nboot = 100)
+head(sens_micro$X)
+nsim=nrow(sens_micro$X)
+
+#Set up data frame
+res = rep(0,times=nsim)
+
+#Loop through every simulation
+for (i in 1:nsim) {
+  tmp = WetDeposition(nitrogen_concentration = JT_nitrogen_df,
+                      annual_precip=as.numeric(sens_micro$X[i,c("p1","p2")])) #note: there is a known bug in the sobol2007 function that requires this to have a two dimensional array (p1 is filler, p2 is the data to be used)
+  
+  res[i] = tmp$wet_dep[100]
+} 
+
+#Give our results to sensitivity structure
+sens_micro = sensitivity::tell(sens_micro, res)
+
+# look at results
+sens_micro$S
+sens_micro$T
+
+tmp_sens = cbind.data.frame(sens_micro$X, nitrogen100=sens_micro$y)
+ggplot(tmp_sens, aes(p2, nitrogen100))+
+  geom_point()+
+  ggtitle("Sensitivity analysis of wet nitrogen deposition \n based on annual precipitation") +
+  labs(x="Annual Precipitation",y="Additional Nitrogen Deposition")
 
 ```
 
