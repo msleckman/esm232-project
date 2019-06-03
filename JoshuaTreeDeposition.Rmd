@@ -129,18 +129,25 @@ ggplot(deposition_rate_per_year) + geom_line(aes(x = Year, y = AddedDeposition))
 
 ```{r}
 
-#Create two samples for sobel sensitivity with annual precipitation
+#Create two samples for sobel sensitivity with annual precipitation and number of storms changing
 nsample=1000
 Ps1 = cbind.data.frame(
-  p1 = runif(min=0, max=1, n=nsample),
-  p2 = runif(min=0, max=1, n=nsample))
+  p = runif(min=0, max=1, n=nsample))
 
 Ps2 = cbind.data.frame(
-  p1 = runif(min=0, max=1, n=nsample),
-  p2 = runif(min=0, max=1, n=nsample))
+  p = runif(min=0, max=1, n=nsample))
+
+Ns1 = cbind.data.frame(
+  ns = runif(min=0, max=365, n=nsample))
+
+Ns2 = cbind.data.frame(
+  ns = runif(min=0, max=365, n=nsample))
+
+allp1 = cbind.data.frame(Ps1, Ns1)
+allp2 = cbind.data.frame(Ps2, Ns2)
 
 #Run sobol sensitivity model
-sens_micro=sobol2007(model = NULL, Ps1, Ps2, nboot = 100)
+sens_micro=sobol2007(model = NULL, allp1, allp2, nboot = 100)
 nsim=nrow(sens_micro$X)
 
 #Set up data frame
@@ -149,7 +156,8 @@ res = rep(0,times=nsim)
 #Loop through every simulation
 for (i in 1:nsim) {
   tmp = WetDeposition(nitrogen_concentration = JT_nitrogen_df,
-                      annual_precip=as.numeric(sens_micro$X[i,c("p1","p2")])) #note: there is a known bug in the sobol2007 function that requires this to have a two dimensional array (p1 is filler, p2 is the data to be used)
+                      annual_precip=as.numeric(sens_micro$X[i,c("p")]),
+                      num_storms = as.numeric(sens_micro$X[i,c("ns")])) 
   
   res[i] = tmp$wet_dep[100]
 } 
@@ -158,14 +166,20 @@ for (i in 1:nsim) {
 sens_micro = sensitivity::tell(sens_micro, res)
 
 tmp_sens = cbind.data.frame(sens_micro$X, nitrogen100=sens_micro$y)
-ggplot(tmp_sens, aes(p2, nitrogen100))+
+
+par(mfrow=c(1, 2))
+ggplot(tmp_sens, aes(p, nitrogen100))+
   geom_point()+
   ggtitle("Sensitivity analysis of wet nitrogen deposition \n based on annual precipitation") +
   labs(x="Annual Precipitation",y="Additional Wet Nitrogen Deposition")
+ggplot(tmp_sens, aes(ns, nitrogen100))+
+  geom_point()+
+  ggtitle("Sensitivity analysis of wet nitrogen deposition \n based on annual precipitation") +
+  labs(x="Number of Storms",y="Additional Wet Nitrogen Deposition")
 
 ```
 
-This sensitivity analysis shows that annual precipitation has a significant affect on wet deposition, but additional wet deposition approaches an upper limit as annual precipitation approaches infinity. 
+This sensitivity analysis shows that annual precipitation has an affect on wet deposition, but additional wet deposition approaches an upper limit as annual precipitation approaches infinity. At lower levels of precipitation, the level of wet deposition tends to be closer to the upper limit, but at higher levels of precipitation, wet deposition is widely distributed. As the number of storms increase, the level of wet deposition also tends to increase, again with an upper limit on wet deposition. Wet deposition is clustered closely to the upper limit on deposition as the number of storms increases, suggesting that storm intensity (level of precipitation per storm) has a significant impact on wet deposition.
 
 
 **Citations**
