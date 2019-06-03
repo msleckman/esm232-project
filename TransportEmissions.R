@@ -1,20 +1,22 @@
-#' Transportation Emissions in LA county
-#'
-#' @param population_df 
+#### Description ####
+
+#' @description This function is used to calculate the amount of emissions resulting from automobiles
+#' @authors Kym Howo, Alex Irvin, Margaux Sleckman, Caitlin Swalec
+
+#### Parameters ####
+
+#' @param population_df dataframe of population size for by year
 #' @param dailyVMT_percar Default = 25. daily mileage per vehicle
 #' @param proportion_trucks Default = 0.14
 #' @param proportion_autos Default = 0.84
 #' @param proportion_motorcycle Default = 0.02
 #' @param daily_vehicle_reduction_proportion Default = 0 . Can reduce the daily vehicle miles travelled by a certain percentage (decimal format)
-#' @param proportion_diesel
-#' @param days_driven_peryear
-#' @param dailyVMT_change
+#' @param proportion_diesel proportion of diesel vehicles
+#' @param days_driven_peryear the average amount of miles driven per year by each vehicle
+#' @param dailyVMT_change optional variable if the user wants to reduce vehicle mileage (e.g. 10% reduction)
 #' @references http://www.laalmanac.com/transport/tr01.php
 #' @references https://www.bts.gov/content/estimated-national-average-vehicle-emissions-rates-vehicle-vehicle-type-using-gasoline-and
-#' 
-
-###############
-
+#' @return a dataframe of emissions for each year
 
 transport_emissions_LA = function(population_df, 
                                   vehicle_per_capita = 0.76,
