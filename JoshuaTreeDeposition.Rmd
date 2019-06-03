@@ -11,11 +11,11 @@ knitr::opts_chunk$set(echo = TRUE)
 
 #### Load Packages and Functions
 
-```{r packages}
+```{r packages, warning=FALSE, message=FALSE}
 
 ### Need to install the gt package from github for the results table###
-library(devtools)
-remotes::install_github("rstudio/gt")
+#library(devtools)
+#remotes::install_github("rstudio/gt")
 ###
 
 library(tidyverse)
@@ -25,7 +25,7 @@ library(gt)
 
 ```
 
-```{r functions}
+```{r functions, warning=FALSE, message=FALSE}
 source("WetDeposition.R")
 source("DryDeposition.R")
 source("HumanPopulationGrowth.R")
@@ -92,7 +92,7 @@ The boxplots show that there are no outliers in this data set and the density pl
 
 In this phase, wet and dry deposition is calculated from the Nitrogen that is left in the atmosphere after the transport phase. The output of each model is a deposition rate in kg/m2. These rates are then added together and converted to kg/hectare for comparison to the deposition threshold described by Bell and Allen.
 
-```{r}
+```{r deposition}
 
 #Run wet and dry deposition models, which calculate rate of deposition
 wet_deposition = WetDeposition(JT_nitrogen_df)
@@ -134,7 +134,7 @@ As expected, nitrogen deposition increases over time due to increasing automobil
 
 #### Sensitivity Analysis 
 
-```{r}
+```{r sens}
 
 #Create two samples for sobel sensitivity with annual precipitation and number of storms changing
 nsample=1000
