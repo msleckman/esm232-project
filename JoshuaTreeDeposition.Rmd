@@ -86,9 +86,10 @@ JT_nitrogen[8]
 ```
 
 
+
 #### Deposition Submodel
 
-In this phase, wet and dry deposition is calculated from the Nitrogen that is left in the atmosphere after the transport phase.
+In this phase, wet and dry deposition is calculated from the Nitrogen that is left in the atmosphere after the transport phase. The output of each model is a deposition rate in kg/m2. These rates are then added together and converted to kg/hectare for comparison to the deposition threshold described by Bell and Allen.
 
 ```{r}
 
@@ -104,7 +105,11 @@ deposition_rate_per_year = data.frame(time = wet_deposition$time, additional_dep
 
 ```
 
+The ouput of this model is a dataframe of deposition rates per year. These rates represent the additional nitrogen deposition that results from automobile emissions in LA. 
+
 #### Final Result
+
+After all the models have been run, the results are displayed in a GT table and a ggplot.
 
 ```{r result}
 
@@ -124,6 +129,7 @@ ggplot(deposition_rate_per_year) + geom_line(aes(x = Year, y = AddedDeposition))
 
 ```
 
+As expected, nitrogen deposition increases over time due to increasing automobile emissions.
 
 #### Sensitivity Analysis 
 
@@ -186,3 +192,5 @@ This sensitivity analysis shows that annual precipitation has an affect on wet d
 Air Quality data - South Coast Air Quality Management District, Historical Data By Year
 http://www.aqmd.gov/home/air-quality/air-quality-data-studies/historical-data-by-year
 
+Deposition threshold for Joshua Tree - Bell, Michael, and Allen, Edith. "Wind, earth, and fire: The impacts of anthropogenic air pollution on soils in Joshua Tree National Park"
+https://www.nps.gov/articles/parkscience32_2_64-66_bell_allen_3838.htm

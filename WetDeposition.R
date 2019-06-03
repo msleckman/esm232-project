@@ -10,6 +10,8 @@
 #' @param num_storms: number of storms occuring in a year
 #' @param storm_duration: duration of each storm (hours)
 #' @param cloud_height: height of clouds (m)
+#' @references Deposition information - Hemond, Harold F., and Elizabeth J. Fechner. Chemical fate and transport in the environment. Elsevier, 2014.
+#' https://www.sciencedirect.com/science/article/pii/B9780123982568000049
 #' @return dataframe of annual wet deposition of nitrogen to Joshua Tree (g/(m2*year))
 
 WetDeposition = function(nitrogen_concentration, annual_precip = 0.13, num_storms = 50, storm_duration = 10, cloud_height = 610) 
