@@ -75,6 +75,7 @@ This submodel evaluates how the nitrogen emissions in LA will translate to nitro
 
 #Read in historic NOx data from LA and Joshua Tree. City 1 is LA, City 2 is Joshua Tree.
 historic_data = read_csv("SCAQMD data raw JT.csv")
+#To demonstrate ability to run with another city's data, try reading in "SCAQMD data raw SBer.csv" where City 1 is LA and City 2 is San Bernardino Valley.
 
 #Run transport submodel and create a dataframe with Joshua Tree nitrogen (in grams) for each time step
 JT_nitrogen = air_transport(historic_data, LA_auto_emissions)
