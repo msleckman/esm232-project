@@ -166,3 +166,9 @@ ggplot(tmp_sens, aes(p2, nitrogen100))+
 ```
 
 This sensitivity analysis shows that annual precipitation has a significant affect on wet deposition, but additional wet deposition approaches an upper limit as annual precipitation approaches infinity. 
+
+
+**Citations**
+Air Quality data - South Coast Air Quality Management District, Historical Data By Year
+http://www.aqmd.gov/home/air-quality/air-quality-data-studies/historical-data-by-year
+
