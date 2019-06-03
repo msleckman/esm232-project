@@ -61,7 +61,7 @@ The second part of the model is the emissions phase, where automobile emissions 
 
 ```{r emissions}
 
-#Run emissions submodel and create dataframe with emissions of Nitrogen (in grams) per year
+#Run emissions submodel and create dataframe with emissions of Nitrogen (in kilograms) per year
 LA_auto_emissions = transport_emissions_LA(LA_population)
 colnames(LA_auto_emissions) = c("time","pop","nitrogen")
 
