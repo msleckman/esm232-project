@@ -9,7 +9,7 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-### Load Packages and Functions
+#### Load Packages and Functions
 
 ```{r packages}
 
@@ -33,9 +33,9 @@ source("TransportEmissions.R")
 source("PollutionTransport.R")
 ```
 
-### Population Growth ODE Submodel
+#### Population Growth ODE Submodel
 
-The first part of the model is finding how the LA population will grow over the next 100 years. This will ultimately determine how many vehicles are present in LA in the emissions phase of the model. 
+The first part of the model is finding how the LA population will grow over the next 100 years. This will ultimately determine how many vehicles are present in LA in the emissions phase of the model. In LA, the initial population is 10,105,518 and the growth rate is 0.13%. The carrying capacity is set to 100,000,000, which ends up not mattering given the slow growth rate of the population (final pop is 11.3 million in 100 years). This is the ODE submodel for this project.
 
 ```{r ode}
 
@@ -54,10 +54,10 @@ colnames(LA_population) = c("time","pop")
 
 ```
 
+#### Emissions Submodel
 
-### Emissions Submodel
+The second part of the model is the emissions phase, where automobile emissions dispense NOx into the atmosphere. The output of this model is the automobile nitrogen emissions in LA for each year in the sample, which will be used as input into the pollution transport model. 
 
-The second part of the model is the emissions phase, where automobile and industrial emissions dispense NOx into the atmosphere. 
 
 ```{r emissions}
 
@@ -67,9 +67,9 @@ colnames(LA_auto_emissions) = c("time","pop","nitrogen")
 
 ```
 
-### Transport Submodel
+#### Transport Submodel
 
-This submodel evaluates how the nitrogen emissions in LA will translate to nitrogen in the air in Joshua Tree
+This submodel evaluates how the nitrogen emissions in LA will translate to nitrogen in the air in Joshua Tree. This is done through a linear regression of historical data. 
 
 ```{r message = FALSE}
 
@@ -86,7 +86,7 @@ JT_nitrogen[8]
 ```
 
 
-### Deposition Submodel
+#### Deposition Submodel
 
 In this phase, wet and dry deposition is calculated from the Nitrogen that is left in the atmosphere after the transport phase.
 
@@ -104,7 +104,7 @@ deposition_rate_per_year = data.frame(time = wet_deposition$time, additional_dep
 
 ```
 
-### Final Result
+#### Final Result
 
 ```{r result}
 
@@ -125,7 +125,7 @@ ggplot(deposition_rate_per_year) + geom_line(aes(x = Year, y = AddedDeposition))
 ```
 
 
-### Sensitivity Analysis 
+#### Sensitivity Analysis 
 
 ```{r}
 
