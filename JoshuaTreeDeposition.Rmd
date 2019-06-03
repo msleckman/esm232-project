@@ -12,10 +12,17 @@ knitr::opts_chunk$set(echo = TRUE)
 ### Load Packages and Functions
 
 ```{r packages}
+
+### Need to install the gt package from github for the results table###
+library(devtools)
+remotes::install_github("rstudio/gt")
+###
+
 library(tidyverse)
 library(deSolve)
 library(sensitivity)
 library(gt)
+
 ```
 
 ```{r functions}
