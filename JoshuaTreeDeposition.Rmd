@@ -1,7 +1,7 @@
 ---
 title: "Joshua Tree Deposition"
 author: "Kym Howo, Alex Irvin, Margaux Sleckman, Caitlin Swalec"
-date: "5/30/2019"
+date: "6/5/2019"
 output: html_document
 ---
 
