@@ -153,7 +153,7 @@ nsim=nrow(sens_micro$X)
 #Set up data frame
 res = rep(0,times=nsim)
 
-#Loop through every simulation
+#Loop through every simulation for wet deposition in year 100
 for (i in 1:nsim) {
   tmp = WetDeposition(nitrogen_concentration = JT_nitrogen_df,
                       annual_precip=as.numeric(sens_micro$X[i,c("p")]),
@@ -179,7 +179,7 @@ ggplot(tmp_sens, aes(ns, nitrogen100))+
 
 ```
 
-This sensitivity analysis shows that annual precipitation has an affect on wet deposition, but additional wet deposition approaches an upper limit as annual precipitation approaches infinity. At lower levels of precipitation, the level of wet deposition tends to be closer to the upper limit, but at higher levels of precipitation, wet deposition is widely distributed. As the number of storms increase, the level of wet deposition also tends to increase, again with an upper limit on wet deposition. Wet deposition is clustered closely to the upper limit on deposition as the number of storms increases, suggesting that storm intensity (level of precipitation per storm) has a significant impact on wet deposition.
+This sensitivity analysis shows that annual precipitation has an affect on wet deposition in year 100, but additional wet deposition approaches an upper limit as annual precipitation approaches infinity. At lower levels of precipitation, the level of wet deposition tends to be closer to the upper limit, but at higher levels of precipitation, wet deposition is widely distributed. As the number of storms increase, the level of wet deposition also tends to increase, again with an upper limit on wet deposition. Wet deposition is clustered closely to the upper limit on deposition as the number of storms increases, suggesting that storm intensity (level of precipitation per storm) has a significant impact on wet deposition.
 
 
 **Citations**
