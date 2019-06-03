@@ -133,8 +133,107 @@ ggplot(deposition_rate_per_year) + geom_line(aes(x = Year, y = AddedDeposition))
 As expected, nitrogen deposition increases over time due to increasing automobile emissions.
 
 #### Sensitivity Analysis 
+#####Sensitivity of several transportation model parameters: vehicle per capita and daily vehicle mileage in LA County
 
-```{r sens}
+```{r sens1}
+
+library(pse)
+## set up for latin hyper cube:
+factors = c("vehicle_per_capita")
+
+nsets = 100
+
+q = c("qunif")
+
+q.arg = list(min = 0.05, max = 2)
+#LHS
+sensitivity_vehicle = LHS(NULL,factors,nsets,q,q.arg)
+head(sensitivity_vehicle)
+
+sensitivity_vehicle_params = get.data(sensitivity_vehicle)
+sensitivity_vehicle_params
+
+sensitivity_vehicle_results = matrix(nrow=nsets, ncol=3)
+# sensitivity_vehicle_results = list(rep(0,100))
+# We are still getting 2 outputs  the list of min/max yeilds
+View((sensitivity_vehicle_results))
+
+nrow(LA_population)
+
+for (i in 1:(nrow(LA_population))) {
+  
+  sensitivity_vehicle_results[i,1] = transport_emissions_LA(population_df = LA_population,
+                                                     vehicle_per_capita = sensitivity_vehicle_params[i,1])[nrow(LA_population),2]
+ 
+  sensitivity_vehicle_results[i,2] = transport_emissions_LA(population_df = LA_population,
+                                                     vehicle_per_capita = sensitivity_vehicle_params[i,1])[nrow(LA_population),3]
+  
+  sensitivity_vehicle_results[i,3] = sensitivity_vehicle_params[i,1]
+  
+  }
+
+colnames(sensitivity_vehicle_results) <- c("pop in year 100", "Nox_emissions","vehicle_per_capita")
+
+View(sensitivity_vehicle_results)
+
+library(ggplot2)
+
+ggplot(as.data.frame(sensitivity_vehicle_results), aes(x = dailyVMT_perVehicle, y = Nox_emissions))+
+  geom_point(col = "firebrick")+theme_classic()+
+  xlab("Average daily miles travelled")+
+  ylab("Annual NOx emissions in year 100")+
+  labs(title = "Annual Nox Emissions in year 100 based\n on Varying Vehicle per capita for LA County")
+  
+```
+
+
+```{r sens2}
+
+factors = c(" dailyVMT_percar")
+
+nsets = 100
+
+q = c("qunif")
+
+q.arg = list(min = 5, max = 60)
+#LHS
+sensitivity_vehicle = LHS(NULL,factors,nsets,q,q.arg)
+head(sensitivity_vehicle)
+
+sensitivity_vehicle_params = get.data(sensitivity_vehicle)
+sensitivity_vehicle_params
+
+sensitivity_vehicle_results = matrix(nrow=nsets, ncol=3)
+
+nrow(LA_population)
+
+for (i in 1:(nrow(LA_population))) {
+  
+  sensitivity_vehicle_results[i,1] = transport_emissions_LA(population_df = LA_population,
+                                                     vehicle_per_capita = sensitivity_vehicle_params[i,1])[nrow(LA_population),2]
+ 
+  sensitivity_vehicle_results[i,2] = transport_emissions_LA(population_df = LA_population,
+                                                     vehicle_per_capita = sensitivity_vehicle_params[i,1])[nrow(LA_population),3]
+  
+  sensitivity_vehicle_results[i,3] = sensitivity_vehicle_params[i,1]
+  
+  }
+
+colnames(sensitivity_vehicle_results) <- c("pop in year 100", "Nox_emissions","dailyVMT_perVehicle")
+
+
+ggplot(as.data.frame(sensitivity_vehicle_results), aes(x = dailyVMT_perVehicle, y = Nox_emissions))+
+  geom_point(col = "firebrick")+theme_classic()+
+  xlab("Average daily miles travelled")+
+  ylab("Annual NOx emissions in year 100")+
+  labs(title = "Annual Nox Emissions in year 100 based\n on Varying Average Daily Vehicle Miles")
+
+
+
+```
+
+#####Sensitivity of precipitation and storms form wet Nitrogen deposition 
+```{r sens3}
 
 #Create two samples for sobel sensitivity with annual precipitation and number of storms changing
 nsample=1000
