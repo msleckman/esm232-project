@@ -141,7 +141,6 @@ Ps2 = cbind.data.frame(
 
 #Run sobol sensitivity model
 sens_micro=sobol2007(model = NULL, Ps1, Ps2, nboot = 100)
-head(sens_micro$X)
 nsim=nrow(sens_micro$X)
 
 #Set up data frame
@@ -157,10 +156,6 @@ for (i in 1:nsim) {
 
 #Give our results to sensitivity structure
 sens_micro = sensitivity::tell(sens_micro, res)
-
-# look at results
-sens_micro$S
-sens_micro$T
 
 tmp_sens = cbind.data.frame(sens_micro$X, nitrogen100=sens_micro$y)
 ggplot(tmp_sens, aes(p2, nitrogen100))+
