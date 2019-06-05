@@ -1,7 +1,7 @@
 ---
 title: "Joshua Tree Deposition"
 author: "Kym Howo, Alex Irvin, Margaux Sleckman, Caitlin Swalec"
-date: "5/30/2019"
+date: "6/5/2019"
 output: html_document
 ---
 
@@ -22,6 +22,8 @@ library(tidyverse)
 library(deSolve)
 library(sensitivity)
 library(gt)
+library(pse)
+library(ggplot2)
 
 ```
 
@@ -61,7 +63,7 @@ The second part of the model is the emissions phase, where automobile emissions 
 
 ```{r emissions}
 
-#Run emissions submodel and create dataframe with emissions of Nitrogen (in grams) per year
+#Run emissions submodel and create dataframe with emissions of Nitrogen (in kilograms) per year
 LA_auto_emissions = transport_emissions_LA(LA_population)
 colnames(LA_auto_emissions) = c("time","pop","nitrogen")
 
@@ -133,11 +135,11 @@ ggplot(deposition_rate_per_year) + geom_line(aes(x = Year, y = AddedDeposition))
 As expected, nitrogen deposition increases over time due to increasing automobile emissions.
 
 #### Sensitivity Analysis 
-#####Sensitivity of several transportation model parameters: vehicle per capita and daily vehicle mileage in LA County
+
+Sensitivity of several transportation model parameters: vehicle per capita and daily vehicle mileage in LA County
 
 ```{r sens1}
 
-library(pse)
 ## set up for latin hyper cube:
 factors = c("vehicle_per_capita")
 
@@ -148,17 +150,12 @@ q = c("qunif")
 q.arg = list(min = 0.05, max = 2)
 #LHS
 sensitivity_vehicle = LHS(NULL,factors,nsets,q,q.arg)
-head(sensitivity_vehicle)
 
 sensitivity_vehicle_params = get.data(sensitivity_vehicle)
-sensitivity_vehicle_params
 
 sensitivity_vehicle_results = matrix(nrow=nsets, ncol=3)
 # sensitivity_vehicle_results = list(rep(0,100))
 # We are still getting 2 outputs  the list of min/max yeilds
-View((sensitivity_vehicle_results))
-
-nrow(LA_population)
 
 for (i in 1:(nrow(LA_population))) {
   
@@ -174,13 +171,9 @@ for (i in 1:(nrow(LA_population))) {
 
 colnames(sensitivity_vehicle_results) <- c("pop in year 100", "Nox_emissions","vehicle_per_capita")
 
-View(sensitivity_vehicle_results)
-
-library(ggplot2)
-
-ggplot(as.data.frame(sensitivity_vehicle_results), aes(x = dailyVMT_perVehicle, y = Nox_emissions))+
+ggplot(as.data.frame(sensitivity_vehicle_results), aes(x = vehicle_per_capita, y = Nox_emissions))+
   geom_point(col = "firebrick")+theme_classic()+
-  xlab("Average daily miles travelled")+
+  xlab("Vehicles per capita")+
   ylab("Annual NOx emissions in year 100")+
   labs(title = "Annual Nox Emissions in year 100 based\n on Varying Vehicle per capita for LA County")
   
@@ -198,14 +191,10 @@ q = c("qunif")
 q.arg = list(min = 5, max = 60)
 #LHS
 sensitivity_vehicle = LHS(NULL,factors,nsets,q,q.arg)
-head(sensitivity_vehicle)
 
 sensitivity_vehicle_params = get.data(sensitivity_vehicle)
-sensitivity_vehicle_params
 
 sensitivity_vehicle_results = matrix(nrow=nsets, ncol=3)
-
-nrow(LA_population)
 
 for (i in 1:(nrow(LA_population))) {
   
@@ -221,7 +210,6 @@ for (i in 1:(nrow(LA_population))) {
 
 colnames(sensitivity_vehicle_results) <- c("pop in year 100", "Nox_emissions","dailyVMT_perVehicle")
 
-
 ggplot(as.data.frame(sensitivity_vehicle_results), aes(x = dailyVMT_perVehicle, y = Nox_emissions))+
   geom_point(col = "firebrick")+theme_classic()+
   xlab("Average daily miles travelled")+
@@ -232,7 +220,10 @@ ggplot(as.data.frame(sensitivity_vehicle_results), aes(x = dailyVMT_perVehicle, 
 
 ```
 
-#####Sensitivity of precipitation and storms form wet Nitrogen deposition 
+Based on the sensitivity analysis of vehicle miles traveled and vehicles per capita, NOx emissions increase linearly as both the average VMT and vehicles per capita increase. Therefore a policy solution could be to reduce cars per capita and / or distance traveled per day. 
+
+Below is a sensitivity analysis of how changes in annual precipitation and the number of storms affect wet Nitrogen deposition. 
+
 ```{r sens3}
 
 #Create two samples for sobel sensitivity with annual precipitation and number of storms changing
