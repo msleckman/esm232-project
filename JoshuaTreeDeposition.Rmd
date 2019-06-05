@@ -281,7 +281,8 @@ ggplot(tmp_sens, aes(p, nitrogen100))+
 ggplot(tmp_sens, aes(ns, nitrogen100))+
   geom_point()+
   ggtitle("Sensitivity analysis of wet nitrogen deposition \n based on annual precipitation") +
-  labs(x="Number of Storms",y="Additional Wet Nitrogen Deposition")
+  labs(x="Number of Storms",y="Additional Wet Nitrogen Deposition")+
+
 
 ```
 

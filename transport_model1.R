@@ -11,6 +11,8 @@
 #' @param dailyVMT_change
 #' @references http://www.laalmanac.com/transport/tr01.php
 #' @references https://www.bts.gov/content/estimated-national-average-vehicle-emissions-rates-vehicle-vehicle-type-using-gasoline-and
+#' @references https://www.epa.gov/sites/production/files/2017-04/documents/mobile_combustion_users_guide.pdf
+#' 
 #' 
 
 ###############
@@ -94,3 +96,4 @@ transport_emissions_LA = function(population_df,
   return(transport_df)
   
   }
+
