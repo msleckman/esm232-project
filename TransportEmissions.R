@@ -16,6 +16,7 @@
 #' @param dailyVMT_change optional variable if the user wants to reduce vehicle mileage (e.g. 10% reduction)
 #' @references http://www.laalmanac.com/transport/tr01.php
 #' @references https://www.bts.gov/content/estimated-national-average-vehicle-emissions-rates-vehicle-vehicle-type-using-gasoline-and
+#' @references https://www.epa.gov/sites/production/files/2017-04/documents/mobile_combustion_users_guide.pdf
 #' @return a dataframe of emissions for each year
 
 transport_emissions_LA = function(population_df, 

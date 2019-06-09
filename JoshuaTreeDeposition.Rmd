@@ -14,8 +14,8 @@ knitr::opts_chunk$set(echo = TRUE)
 ```{r packages, warning=FALSE, message=FALSE}
 
 ### Need to install the gt package from github for the results table###
-#library(devtools)
-#remotes::install_github("rstudio/gt")
+library(devtools)
+remotes::install_github("rstudio/gt")
 ###
 
 library(tidyverse)
@@ -24,6 +24,10 @@ library(sensitivity)
 library(gt)
 library(pse)
 library(ggplot2)
+# install.packages("e1071")
+library(e1071)
+#install.packages("kableExtra")
+library(kableExtra)
 
 ```
 
@@ -37,7 +41,7 @@ source("PollutionTransport.R")
 
 #### Population Growth ODE Submodel
 
-The first part of the model is finding how the LA population will grow over the next 100 years. This will ultimately determine how many vehicles are present in LA in the emissions phase of the model. In LA, the initial population is 10,105,518 and the growth rate is 0.13%. The carrying capacity is set to 100,000,000, which ends up not mattering given the slow growth rate of the population (final pop is 11.3 million in 100 years). This is the ODE submodel for this project.
+The first part of the model is finding how the LA population will grow over the next 100 years. This will ultimately determine how many vehicles are present in LA in the emissions phase of the model. In LA, the initial population is 10,163,507 and the growth rate is 0.13% (World Population Review, 2019). The carrying capacity is set to 100,000,000, which ends up not mattering given the slow growth rate of the population (final pop is 11.3 million in 100 years). This is the ODE submodel for this project.
 
 ```{r ode}
 
@@ -45,7 +49,7 @@ The first part of the model is finding how the LA population will grow over the 
 time_frame = data.frame(time=seq(from=1,to=100))
 
 #Set initial parameters of population size, growth rate, and carrying capacity
-parameters = list(p0=10105518,r=0.0013,K=100000000)
+parameters = list(p0=10163507,r=0.0013,K=100000000)
 
 #Run ODE model to find human population over the time frame
 result = ode(parameters$p0, time_frame$time, HumanPopGrowth, parameters)
@@ -54,20 +58,30 @@ result = ode(parameters$p0, time_frame$time, HumanPopGrowth, parameters)
 LA_population = data.frame(result)
 colnames(LA_population) = c("time","pop")
 
+
+ggplot(LA_population, aes(time, pop))+geom_line()+theme_classic()+ylab("Population")+
+  labs(title = "LA Population Size over Time with 2019 Growth Rate")
+
 ```
 
 #### Emissions Submodel
 
-The second part of the model is the emissions phase, where automobile emissions dispense NOx into the atmosphere. The output of this model is the automobile nitrogen emissions in LA for each year in the sample, which will be used as input into the pollution transport model. 
+The second part of the model is the emissions phase, where automobile emissions dispense NOx into the atmosphere. The output of this model is the automobile nitrogen emissions (NOx) in LA for each year in the sample, which will be used as input into the pollution transport model. 
 
 
 ```{r emissions}
+
+#What does the function look like:
+transport_emissions_LA
 
 #Run emissions submodel and create dataframe with emissions of Nitrogen (in kilograms) per year
 LA_auto_emissions = transport_emissions_LA(LA_population)
 colnames(LA_auto_emissions) = c("time","pop","nitrogen")
 
+
+tail(LA_auto_emissions, 10)
 ```
+
 
 #### Transport Submodel
 
@@ -78,6 +92,9 @@ This submodel evaluates how the nitrogen emissions in LA will translate to nitro
 #Read in historic NOx data from LA and Joshua Tree. City 1 is LA, City 2 is Joshua Tree.
 historic_data = read_csv("SCAQMD data raw JT.csv")
 #To demonstrate ability to run with another city's data, try reading in "SCAQMD data raw SBer.csv" where City 1 is LA and City 2 is San Bernardino Valley.
+
+#Visualize Function
+air_transport
 
 #Run transport submodel and create a dataframe with Joshua Tree nitrogen (in grams) for each time step
 JT_nitrogen = air_transport(historic_data, LA_auto_emissions)
@@ -94,12 +111,21 @@ The boxplots show that there are no outliers in this data set and the density pl
 
 In this phase, wet and dry deposition is calculated from the Nitrogen that is left in the atmosphere after the transport phase. The output of each model is a deposition rate in kg/m2. These rates are then added together and converted to kg/hectare for comparison to the deposition threshold described by Bell and Allen.
 
+```{r deposition_functions}
+
+#what does these functions look like:
+WetDeposition
+DryDeposition
+
+```
+
+
 ```{r deposition}
 
 #Run wet and dry deposition models, which calculate rate of deposition
 wet_deposition = WetDeposition(JT_nitrogen_df)
 dry_deposition = DryDeposition(JT_nitrogen_df)
-
+ 
 #Add wet and dry deposition rates together
 total_deposition = (wet_deposition$wet_dep + dry_deposition$dry_dep) * 0.0001
 
@@ -128,7 +154,13 @@ deposition_rate_per_year %>%
     columns = vars() # First column: supp (character)
   )
 
-ggplot(deposition_rate_per_year) + geom_line(aes(x = Year, y = AddedDeposition)) + theme_classic() + ylab("Additional Deposition\n") + xlab("\nYear")
+# Alternative table
+library(kableExtra)
+
+kable(head(deposition_rate_per_year, 40), format = "markdown", caption = "Added Deposition in Joshua Tree in kg/hectare", align = "c")
+
+ggplot(deposition_rate_per_year) + geom_line(aes(x = Year, y = AddedDeposition)) + theme_classic() + ylab("Additional Deposition\n") + xlab("\nYear")+
+  labs(title = "Additional Nitrogen  Deposition into Joshua Tree as result of increasing vehicle emissions in LA County")
 
 ```
 
@@ -278,6 +310,8 @@ ggplot(tmp_sens, aes(ns, nitrogen100))+
 ```
 
 This sensitivity analysis shows that annual precipitation has an affect on wet deposition in year 100, but additional wet deposition approaches an upper limit as annual precipitation approaches infinity. At lower levels of precipitation, the level of wet deposition tends to be closer to the upper limit, but at higher levels of precipitation, wet deposition is widely distributed. As the number of storms increase, the level of wet deposition also tends to increase, again with an upper limit on wet deposition. Wet deposition is clustered closely to the upper limit on deposition as the number of storms increases, suggesting that storm intensity (level of precipitation per storm) has a significant impact on wet deposition.
+In a future analysis, the sensitivity applied to vehicle per capita, the daily vehicle
+miles traveled parameters for the vehicle emissions stage, and the sensitivity to the number of storms and precipitation inputs to the deposition stage could be done simultaneously to observe how the four sensitized inputs vary together.   
 
 
 **Citations**
@@ -286,3 +320,5 @@ http://www.aqmd.gov/home/air-quality/air-quality-data-studies/historical-data-by
 
 Deposition threshold for Joshua Tree - Bell, Michael, and Allen, Edith. "Wind, earth, and fire: The impacts of anthropogenic air pollution on soils in Joshua Tree National Park"
 https://www.nps.gov/articles/parkscience32_2_64-66_bell_allen_3838.htm
+
+Los Angeles Population - Los Angeles County, California Population 2019. World Population Review. Retrieved from:http://worldpopulationreview.com/us-counties/ca/los-angeles-county-population/
