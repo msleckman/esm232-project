@@ -1,0 +1,334 @@
+---
+title: "Joshua Tree Deposition"
+subtitle: "ESM 232 - Final Project"
+author: "Kym Howo, Alex Irvin, Margaux Sleckman, Caitlin Swalec"
+date: "6/5/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#### Load Packages and Functions
+
+```{r packages, warning=FALSE, message=FALSE}
+
+### install the gt package from github if want results in a gt table###
+library(devtools)
+# install_github("rstudio/gt")
+
+###
+library(tidyverse)
+library(deSolve)
+library(sensitivity)
+# library(gt)
+library(pse)
+library(ggplot2)
+# install.packages("e1071")
+library(e1071)
+#install.packages("kableExtra")
+library(kableExtra)
+
+```
+
+```{r functions, warning=FALSE, message=FALSE}
+source("WetDeposition.R")
+source("DryDeposition.R")
+source("HumanPopulationGrowth.R")
+source("TransportEmissions.R")
+source("PollutionTransport.R")
+```
+
+#### Population Growth ODE Submodel
+
+The first part of the model is finding how the LA population will grow over the next 100 years. This will ultimately determine how many vehicles are present in LA in the emissions phase of the model. In LA, the initial population is 10,163,507 and the growth rate is 0.13% (World Population Review, 2019). The carrying capacity is set to 100,000,000, which ends up not mattering given the slow growth rate of the population (final pop is 11.3 million in 100 years). This is the ODE submodel for this project.
+
+```{r ode}
+
+#Set up the time frame
+time_frame = data.frame(time=seq(from=1,to=100))
+
+#Set initial parameters of population size, growth rate, and carrying capacity
+parameters = list(p0=10163507,r=0.0013,K=100000000)
+
+#Run ODE model to find human population over the time frame
+result = ode(parameters$p0, time_frame$time, HumanPopGrowth, parameters)
+
+#Create dataframe to pass into next submodel
+LA_population = data.frame(result)
+colnames(LA_population) = c("time","pop")
+
+
+ggplot(LA_population, aes(time, pop))+geom_line()+theme_classic()+ylab("Population")+
+  labs(title = "LA Population Size over Time with 2019 Growth Rate")
+
+```
+
+#### Emissions Submodel
+
+The second part of the model is the emissions phase, where automobile emissions dispense NOx into the atmosphere. The output of this model is the automobile nitrogen emissions (NOx) in LA for each year in the sample, which will be used as input into the pollution transport model. 
+
+
+```{r emissions}
+
+#What does the function look like:
+transport_emissions_LA
+
+#Run emissions submodel and create dataframe with emissions of Nitrogen (in kilograms) per year
+LA_auto_emissions = transport_emissions_LA(LA_population)
+colnames(LA_auto_emissions) = c("time","pop","nitrogen")
+
+
+tail(LA_auto_emissions, 10)
+```
+
+
+#### Transport Submodel
+
+This submodel evaluates how the nitrogen emissions in LA will translate to nitrogen in the air in Joshua Tree. This is done through a linear regression of historical data for air quality in Los Angeles and Coachella Valley (closest South Coast Air Quality Management District monitoring location to Joshua Tree). 
+
+```{r message = FALSE}
+
+#Read in historic NOx data from LA and Joshua Tree. City 1 is LA, City 2 is Joshua Tree.
+historic_data = read_csv("SCAQMD data raw JT.csv")
+#To demonstrate ability to run with another city's data, try reading in "SCAQMD data raw SBer.csv" where City 1 is LA and City 2 is San Bernardino Valley.
+
+#Visualize Function
+air_transport
+
+#Run transport submodel and create a dataframe with Joshua Tree nitrogen (in grams) for each time step
+JT_nitrogen = air_transport(historic_data, LA_auto_emissions)
+JT_nitrogen_df = data.frame(JT_nitrogen[1])
+JT_nitrogen[7]
+JT_nitrogen[8]
+
+```
+
+The boxplots show that there are no outliers in this data set and the density plots show that the distribution of NOx for both LA and Joshua Tree are relatively normal. The Joshua Tree data starts to show signs of a bimodal distribution, but we decided that it is reasonable to assume normality. The linear regression correlated NOx levels in LA to NOx levels in Joshua Tree. Correlation between these data sets is strong with a correlation factor of 0.94, showing that it is reasonable to assumer linear correlation. The equation for the linear regression produced using the historic data for Joshua Tree and Los Angeles is as follows: NOx level in Joshua Tree = -8.0148 + (NOx level in Los Angeles)*0.6693
+
+
+#### Deposition Submodel
+
+In this phase, wet and dry deposition is calculated from the Nitrogen that is left in the atmosphere after the transport phase. The output of each model is a deposition rate in kg/m2. These rates are then added together and converted to kg/hectare for comparison to the deposition threshold described by Bell and Allen.
+
+```{r deposition_functions}
+
+#what do these functions look like:
+WetDeposition
+DryDeposition
+
+```
+
+
+```{r deposition}
+
+#Run wet and dry deposition models, which calculate rate of deposition
+wet_deposition = WetDeposition(JT_nitrogen_df)
+dry_deposition = DryDeposition(JT_nitrogen_df)
+ 
+#Add wet and dry deposition rates together
+total_deposition = (wet_deposition$wet_dep + dry_deposition$dry_dep) * 0.0001
+
+#Create dataframe with the additional deposition rate for each year
+deposition_rate_per_year = data.frame(time = wet_deposition$time, additional_dep = total_deposition)
+
+```
+
+The ouput of this model is a dataframe of deposition rates per year. These rates represent the additional nitrogen deposition that results from automobile emissions in LA. 
+
+#### Final Result
+
+After all the models have been run, the results are displayed in a GT table and a ggplot.
+
+```{r result, results= 'asis'}
+
+#  Table of added deposition each year
+colnames(deposition_rate_per_year) = c("Year","AddedDeposition")
+
+View(deposition_rate_per_year)
+# table
+head(deposition_rate_per_year, 10) %>% 
+   kableExtra::kable(caption = "Added Deposition in Joshua Tree in kg/hectare - first ten years displayed") %>% 
+   kable_styling(bootstrap_options = c("striped", "hover)"))  
+
+## Alternative table if library(gt) works
+# deposition_rate_per_year %>% 
+  # gt() %>% 
+#   tab_header(
+#     title = "Added Deposition in Joshua Tree", # Add a title
+#     subtitle = "kg/hectare"# And a subtitle
+#   ) %>%
+#   fmt_passthrough( # Not sure about this but it works...
+#     columns = vars() # First column: supp (character)
+#   )
+
+
+
+ggplot(deposition_rate_per_year) + geom_line(aes(x = Year, y = AddedDeposition)) + theme_classic() + ylab("Additional Deposition\n") + xlab("\nYear")+
+  labs(title = "Additional Nitrogen Deposition into Joshua Tree\n as result of increasing vehicle emissions in LA County")
+
+```
+
+
+The values are so incrementally small that we don't see the difference in deposition between years on the table of the first 10 years (view deposition_rate_per_year df to see precise deposition values in kg/hectare). However, when we graph the results we observe a change over time.  
+As expected, nitrogen deposition increases over time due to increasing automobile emissions.
+
+#### Sensitivity Analysis 
+
+Sensitivity of several transportation model parameters: vehicle per capita and daily vehicle mileage in LA County
+
+```{r sens1}
+
+## set up for latin hyper cube:
+factors = c("vehicle_per_capita")
+
+nsets = 100
+
+q = c("qunif")
+
+q.arg = list(min = 0.05, max = 2)
+#LHS
+sensitivity_vehicle = LHS(NULL,factors,nsets,q,q.arg)
+
+sensitivity_vehicle_params = get.data(sensitivity_vehicle)
+
+sensitivity_vehicle_results = matrix(nrow=nsets, ncol=3)
+# sensitivity_vehicle_results = list(rep(0,100))
+# We are still getting 2 outputs  the list of min/max yeilds
+
+for (i in 1:(nrow(LA_population))) {
+  
+  sensitivity_vehicle_results[i,1] = transport_emissions_LA(population_df = LA_population,
+                                                     vehicle_per_capita = sensitivity_vehicle_params[i,1])[nrow(LA_population),2]
+ 
+  sensitivity_vehicle_results[i,2] = transport_emissions_LA(population_df = LA_population,
+                                                     vehicle_per_capita = sensitivity_vehicle_params[i,1])[nrow(LA_population),3]
+  
+  sensitivity_vehicle_results[i,3] = sensitivity_vehicle_params[i,1]
+  
+  }
+
+colnames(sensitivity_vehicle_results) <- c("pop in year 100", "Nox_emissions","vehicle_per_capita")
+
+ggplot(as.data.frame(sensitivity_vehicle_results), aes(x = vehicle_per_capita, y = Nox_emissions))+
+  geom_point(col = "firebrick")+theme_classic()+
+  xlab("Vehicles per capita")+
+  ylab("Annual NOx emissions in year 100")+
+  labs(title = "Annual Nox Emissions in year 100 based\n on Varying Vehicle per capita for LA County")
+  
+```
+
+
+```{r sens2}
+
+factors = c(" dailyVMT_percar")
+
+nsets = 100
+
+q = c("qunif")
+
+q.arg = list(min = 5, max = 60)
+#LHS
+sensitivity_vehicle = LHS(NULL,factors,nsets,q,q.arg)
+
+sensitivity_vehicle_params = get.data(sensitivity_vehicle)
+
+sensitivity_vehicle_results = matrix(nrow=nsets, ncol=3)
+
+for (i in 1:(nrow(LA_population))) {
+  
+  sensitivity_vehicle_results[i,1] = transport_emissions_LA(population_df = LA_population,
+                                                     vehicle_per_capita = sensitivity_vehicle_params[i,1])[nrow(LA_population),2]
+ 
+  sensitivity_vehicle_results[i,2] = transport_emissions_LA(population_df = LA_population,
+                                                     vehicle_per_capita = sensitivity_vehicle_params[i,1])[nrow(LA_population),3]
+  
+  sensitivity_vehicle_results[i,3] = sensitivity_vehicle_params[i,1]
+  
+  }
+
+colnames(sensitivity_vehicle_results) <- c("pop in year 100", "Nox_emissions","dailyVMT_perVehicle")
+
+ggplot(as.data.frame(sensitivity_vehicle_results), aes(x = dailyVMT_perVehicle, y = Nox_emissions))+
+  geom_point(col = "firebrick")+theme_classic()+
+  xlab("Average daily miles travelled")+
+  ylab("Annual NOx emissions in year 100")+
+  labs(title = "Annual Nox Emissions in year 100 based\n on Varying Average Daily Vehicle Miles")
+
+
+
+```
+
+Based on the sensitivity analysis of vehicle miles traveled and vehicles per capita, NOx emissions increase linearly as both the average VMT and vehicles per capita increase. Therefore a policy solution could be to reduce cars per capita and / or distance traveled per day. 
+
+Below is a sensitivity analysis of how changes in annual precipitation and the number of storms affect wet Nitrogen deposition. 
+
+```{r sens3}
+
+#Create two samples for sobel sensitivity with annual precipitation and number of storms changing
+nsample=1000
+Ps1 = cbind.data.frame(
+  p = runif(min=0, max=1, n=nsample))
+
+Ps2 = cbind.data.frame(
+  p = runif(min=0, max=1, n=nsample))
+
+Ns1 = cbind.data.frame(
+  ns = runif(min=0, max=365, n=nsample))
+
+Ns2 = cbind.data.frame(
+  ns = runif(min=0, max=365, n=nsample))
+
+allp1 = cbind.data.frame(Ps1, Ns1)
+allp2 = cbind.data.frame(Ps2, Ns2)
+
+#Run sobol sensitivity model
+sens_micro=sobol2007(model = NULL, allp1, allp2, nboot = 100)
+nsim=nrow(sens_micro$X)
+
+#Set up data frame
+res = rep(0,times=nsim)
+
+#Loop through every simulation for wet deposition in year 100
+for (i in 1:nsim) {
+  tmp = WetDeposition(nitrogen_concentration = JT_nitrogen_df,
+                      annual_precip=as.numeric(sens_micro$X[i,c("p")]),
+                      num_storms = as.numeric(sens_micro$X[i,c("ns")])) 
+  
+  res[i] = tmp$wet_dep[100]
+} 
+
+#Give our results to sensitivity structure
+sens_micro = sensitivity::tell(sens_micro, res)
+
+tmp_sens = cbind.data.frame(sens_micro$X, nitrogen100=sens_micro$y)
+
+par(mfrow=c(1, 2))
+ggplot(tmp_sens, aes(p, nitrogen100))+
+  geom_point()+
+  ggtitle("Sensitivity analysis of wet nitrogen deposition \n based on annual precipitation") +
+  labs(x="Annual Precipitation",y="Additional Wet Nitrogen Deposition")
+ggplot(tmp_sens, aes(ns, nitrogen100))+
+  geom_point()+
+  ggtitle("Sensitivity analysis of wet nitrogen deposition \n based on annual precipitation") +
+  labs(x="Number of Storms",y="Additional Wet Nitrogen Deposition")
+
+
+```
+
+This sensitivity analysis shows that annual precipitation has an affect on wet deposition in year 100, but additional wet deposition approaches an upper limit as annual precipitation approaches infinity. At lower levels of precipitation, the level of wet deposition tends to be closer to the upper limit, but at higher levels of precipitation, wet deposition is widely distributed. As the number of storms increase, the level of wet deposition also tends to increase, again with an upper limit on wet deposition. Wet deposition is clustered closely to the upper limit on deposition as the number of storms increases, suggesting that storm intensity (level of precipitation per storm) has a significant impact on wet deposition.
+
+In a future analysis, the sensitivity applied to vehicle per capita, the daily vehicle
+miles traveled parameters for the vehicle emissions stage, and the sensitivity to the number of storms and precipitation inputs to the deposition stage could be done simultaneously to observe how the four sensitized inputs vary together.   
+
+
+**Citations**
+
+Air Quality data - South Coast Air Quality Management District, Historical Data By Year
+http://www.aqmd.gov/home/air-quality/air-quality-data-studies/historical-data-by-year
+
+Deposition threshold for Joshua Tree - Bell, Michael, and Allen, Edith. "Wind, earth, and fire: The impacts of anthropogenic air pollution on soils in Joshua Tree National Park"
+https://www.nps.gov/articles/parkscience32_2_64-66_bell_allen_3838.htm
+
+Los Angeles Population - Los Angeles County, California Population 2019. World Population Review. Retrieved from:http://worldpopulationreview.com/us-counties/ca/los-angeles-county-population/
