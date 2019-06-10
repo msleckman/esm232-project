@@ -1,5 +1,6 @@
 ---
 title: "Joshua Tree Deposition"
+subtitle: "ESM 232 - Final Project"
 author: "Kym Howo, Alex Irvin, Margaux Sleckman, Caitlin Swalec"
 date: "6/5/2019"
 output: html_document
@@ -13,7 +14,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ```{r packages, warning=FALSE, message=FALSE}
 
-### Need to install the gt package from github for the results table###
+### install the gt package from github if want results in a gt table###
 library(devtools)
 # install_github("rstudio/gt")
 
@@ -113,7 +114,7 @@ In this phase, wet and dry deposition is calculated from the Nitrogen that is le
 
 ```{r deposition_functions}
 
-#what does these functions look like:
+#what do these functions look like:
 WetDeposition
 DryDeposition
 
@@ -142,16 +143,16 @@ After all the models have been run, the results are displayed in a GT table and 
 
 ```{r result, results= 'asis'}
 
-#GT Table of added deposition each year
+#  Table of added deposition each year
 colnames(deposition_rate_per_year) = c("Year","AddedDeposition")
 
-
+View(deposition_rate_per_year)
 # table
 head(deposition_rate_per_year, 10) %>% 
    kableExtra::kable(caption = "Added Deposition in Joshua Tree in kg/hectare - first ten years displayed") %>% 
    kable_styling(bootstrap_options = c("striped", "hover)"))  
 
-## ALternative table if library(gt) works
+## Alternative table if library(gt) works
 # deposition_rate_per_year %>% 
   # gt() %>% 
 #   tab_header(
@@ -169,6 +170,8 @@ ggplot(deposition_rate_per_year) + geom_line(aes(x = Year, y = AddedDeposition))
 
 ```
 
+
+The values are so incrementally small that we don't see the difference in deposition between years on the table of the first 10 years (view deposition_rate_per_year df to see precise deposition values in kg/hectare). However, when we graph the results we observe a change over time.  
 As expected, nitrogen deposition increases over time due to increasing automobile emissions.
 
 #### Sensitivity Analysis 
