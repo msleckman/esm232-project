@@ -15,13 +15,13 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ### Need to install the gt package from github for the results table###
 library(devtools)
-remotes::install_github("rstudio/gt")
-###
+# install_github("rstudio/gt")
 
+###
 library(tidyverse)
 library(deSolve)
 library(sensitivity)
-library(gt)
+# library(gt)
 library(pse)
 library(ggplot2)
 # install.packages("e1071")
@@ -140,27 +140,32 @@ The ouput of this model is a dataframe of deposition rates per year. These rates
 
 After all the models have been run, the results are displayed in a GT table and a ggplot.
 
-```{r result}
+```{r result, results= 'asis'}
 
 #GT Table of added deposition each year
 colnames(deposition_rate_per_year) = c("Year","AddedDeposition")
-deposition_rate_per_year %>% 
-  gt() %>% 
-  tab_header(
-    title = "Added Deposition in Joshua Tree", # Add a title
-    subtitle = "kg/hectare"# And a subtitle
-  ) %>%
-  fmt_passthrough( # Not sure about this but it works...
-    columns = vars() # First column: supp (character)
-  )
 
-# Alternative table
-library(kableExtra)
 
-kable(head(deposition_rate_per_year, 40), format = "markdown", caption = "Added Deposition in Joshua Tree in kg/hectare", align = "c")
+# table
+head(deposition_rate_per_year, 10) %>% 
+   kableExtra::kable(caption = "Added Deposition in Joshua Tree in kg/hectare - first ten years displayed") %>% 
+   kable_styling(bootstrap_options = c("striped", "hover)"))  
+
+## ALternative table if library(gt) works
+# deposition_rate_per_year %>% 
+  # gt() %>% 
+#   tab_header(
+#     title = "Added Deposition in Joshua Tree", # Add a title
+#     subtitle = "kg/hectare"# And a subtitle
+#   ) %>%
+#   fmt_passthrough( # Not sure about this but it works...
+#     columns = vars() # First column: supp (character)
+#   )
+
+
 
 ggplot(deposition_rate_per_year) + geom_line(aes(x = Year, y = AddedDeposition)) + theme_classic() + ylab("Additional Deposition\n") + xlab("\nYear")+
-  labs(title = "Additional Nitrogen  Deposition into Joshua Tree as result of increasing vehicle emissions in LA County")
+  labs(title = "Additional Nitrogen Deposition into Joshua Tree\n as result of increasing vehicle emissions in LA County")
 
 ```
 
@@ -304,17 +309,19 @@ ggplot(tmp_sens, aes(p, nitrogen100))+
 ggplot(tmp_sens, aes(ns, nitrogen100))+
   geom_point()+
   ggtitle("Sensitivity analysis of wet nitrogen deposition \n based on annual precipitation") +
-  labs(x="Number of Storms",y="Additional Wet Nitrogen Deposition")+
+  labs(x="Number of Storms",y="Additional Wet Nitrogen Deposition")
 
 
 ```
 
 This sensitivity analysis shows that annual precipitation has an affect on wet deposition in year 100, but additional wet deposition approaches an upper limit as annual precipitation approaches infinity. At lower levels of precipitation, the level of wet deposition tends to be closer to the upper limit, but at higher levels of precipitation, wet deposition is widely distributed. As the number of storms increase, the level of wet deposition also tends to increase, again with an upper limit on wet deposition. Wet deposition is clustered closely to the upper limit on deposition as the number of storms increases, suggesting that storm intensity (level of precipitation per storm) has a significant impact on wet deposition.
+
 In a future analysis, the sensitivity applied to vehicle per capita, the daily vehicle
 miles traveled parameters for the vehicle emissions stage, and the sensitivity to the number of storms and precipitation inputs to the deposition stage could be done simultaneously to observe how the four sensitized inputs vary together.   
 
 
 **Citations**
+
 Air Quality data - South Coast Air Quality Management District, Historical Data By Year
 http://www.aqmd.gov/home/air-quality/air-quality-data-studies/historical-data-by-year
 
